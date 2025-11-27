@@ -3,12 +3,18 @@ const express = require("express");
 const cors = require("cors");
 const connectDB = require("./config/db");
 
+
+
+
 const todoRoutes = require("./routes/todoRoutes");
 
 const app = express();
 
 // Middlewares
-app.use(cors());
+app.use(cors({
+  origin: "*",
+  methods: "GET,POST,PUT,DELETE",
+}));
 app.use(express.json());
 
 // DB Connect
