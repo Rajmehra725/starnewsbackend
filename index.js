@@ -1,35 +1,71 @@
-require("dotenv").config();
-const express = require("express");
-const cors = require("cors");
-const connectDB = require("./config/db");
-const path = require("path");
+import dotenv from "dotenv";
+dotenv.config();
 
+import express from "express";
+import cors from "cors";
+import { createServer } from "http";
+import { Server } from "socket.io";
+import path from "path";
 
+import connectDB from "./config/db.js";
+import newsRoutes from "./routes/newsRoutes.js";
+import interactionRoutes from "./routes/interactionRoutes.js";
 
-const todoRoutes = require("./routes/todoRoutes");
-const formRoutes = require("./routes/formRoutes");
+// ✅ NEW ROUTES
+import adRoutes from "./routes/adRoutes.js";
+import breakingRoutes from "./routes/breakingRoutes.js";
+
 const app = express();
 
-// Middlewares
-app.use(cors({
-  origin: "*",
-  methods: "GET,POST,PUT,DELETE",
-}));
-app.use(express.json());
+// ✅ SOCKET SERVER
+const server = createServer(app);
 
-// DB Connect
-connectDB();
-
-// API Routes
-app.use("/api/todos", todoRoutes);
-app.use("/api/form", require("./routes/formRoutes"));
-// Default route
-app.get("/", (req, res) => {
-  res.send("Todo API Working Successfully 🚀");
+export const io = new Server(server, {
+  cors: {
+    origin: "*",
+  },
 });
 
-// Start server
+// ================= MIDDLEWARE =================
+app.use(
+  cors({
+    origin: "*",
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+  })
+);
+
+app.use(express.json());
+
+// ✅ 🔥 VERY IMPORTANT (IMAGE FIX)
+app.use("/uploads", express.static(path.join("uploads")));
+
+// ================= ROUTES =================
+app.use("/api/news", newsRoutes);
+app.use("/api/interactions", interactionRoutes);
+
+// ✅ NEW
+app.use("/api/ads", adRoutes);
+app.use("/api/breaking", breakingRoutes);
+
+// ================= SOCKET =================
+io.on("connection", (socket) => {
+  console.log("🔥 User connected:", socket.id);
+
+  socket.on("joinNews", (newsId) => {
+    socket.join(newsId);
+  });
+
+  socket.on("disconnect", () => {
+    console.log("❌ User disconnected:", socket.id);
+  });
+});
+
+// ================= DB =================
+connectDB();
+
+// ================= SERVER =================
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server Running on port ${PORT}`);
+
+server.listen(PORT, () => {
+  console.log(`🚀 Server Running on http://localhost:${PORT}`);
 });
