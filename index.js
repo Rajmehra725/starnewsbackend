@@ -14,39 +14,42 @@ import interactionRoutes from "./routes/interactionRoutes.js";
 // ✅ NEW ROUTES
 import adRoutes from "./routes/adRoutes.js";
 import breakingRoutes from "./routes/breakingRoutes.js";
-import newsSubmitRoutes from "./routes/newsSubmitRoutes.js"
+import newsSubmitRoutes from "./routes/newsSubmitRoutes.js";
+
 const app = express();
 
-// ✅ SOCKET SERVER
+// ================= SERVER =================
 const server = createServer(app);
 
+// ✅ SOCKET FIX (IMPORTANT)
 export const io = new Server(server, {
   cors: {
     origin: "*",
+    methods: ["GET", "POST"],
   },
+  transports: ["websocket", "polling"], // ⭐ IMPORTANT
 });
 
 // ================= MIDDLEWARE =================
 app.use(
   cors({
     origin: "*",
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+    credentials: true,
   })
 );
 
 app.use(express.json());
 
-// ✅ 🔥 VERY IMPORTANT (IMAGE FIX)
+// ✅ STATIC IMAGES
 app.use("/uploads", express.static(path.join("uploads")));
 
 // ================= ROUTES =================
 app.use("/api/news", newsRoutes);
 app.use("/api/interactions", interactionRoutes);
-
-// ✅ NEW
 app.use("/api/ads", adRoutes);
 app.use("/api/breaking", breakingRoutes);
 app.use("/api/newsSubmit", newsSubmitRoutes);
+
 // ================= SOCKET =================
 io.on("connection", (socket) => {
   console.log("🔥 User connected:", socket.id);
@@ -63,9 +66,9 @@ io.on("connection", (socket) => {
 // ================= DB =================
 connectDB();
 
-// ================= SERVER =================
+// ================= START =================
 const PORT = process.env.PORT || 5000;
 
 server.listen(PORT, () => {
-  console.log(`🚀 Server Running on http://localhost:${PORT}`);
+  console.log(`🚀 Server Running on ${PORT}`);
 });
