@@ -14,7 +14,7 @@ import interactionRoutes from "./routes/interactionRoutes.js";
 // ✅ NEW ROUTES
 import adRoutes from "./routes/adRoutes.js";
 import breakingRoutes from "./routes/breakingRoutes.js";
-
+import newsSubmitRoutes from "./routes/newsSubmitRoutes.js"
 const app = express();
 
 // ✅ SOCKET SERVER
@@ -46,7 +46,7 @@ app.use("/api/interactions", interactionRoutes);
 // ✅ NEW
 app.use("/api/ads", adRoutes);
 app.use("/api/breaking", breakingRoutes);
-
+app.use("/api/newsSubmit", newsSubmitRoutes);
 // ================= SOCKET =================
 io.on("connection", (socket) => {
   console.log("🔥 User connected:", socket.id);
