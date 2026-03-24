@@ -67,5 +67,5 @@ io.on("connection", (socket) => {
 connectDB();
 
 // ================= START =================
-const PORT = process.env.PORT || 5001; // 5001 instead of 5000
+const PORT = process.env.PORT || 5002; // 5001 instead of 5000
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
