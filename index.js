@@ -15,7 +15,7 @@ import interactionRoutes from "./routes/interactionRoutes.js";
 import adRoutes from "./routes/adRoutes.js";
 import breakingRoutes from "./routes/breakingRoutes.js";
 import newsSubmitRoutes from "./routes/newsSubmitRoutes.js";
-
+import idCardRoutes from "./routes/idCardRoutes.js";
 const app = express();
 
 // ================= SERVER =================
@@ -49,7 +49,7 @@ app.use("/api/interactions", interactionRoutes);
 app.use("/api/ads", adRoutes);
 app.use("/api/breaking", breakingRoutes);
 app.use("/api/newsSubmit", newsSubmitRoutes);
-
+app.use("/api/idcards", idCardRoutes);
 // ================= SOCKET =================
 io.on("connection", (socket) => {
   console.log("🔥 User connected:", socket.id);
@@ -67,8 +67,5 @@ io.on("connection", (socket) => {
 connectDB();
 
 // ================= START =================
-const PORT = process.env.PORT || 5000;
-
-server.listen(PORT, () => {
-  console.log(`🚀 Server Running on ${PORT}`);
-});
+const PORT = process.env.PORT || 5001; // 5001 instead of 5000
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
