@@ -16,6 +16,7 @@ import adRoutes from "./routes/adRoutes.js";
 import breakingRoutes from "./routes/breakingRoutes.js";
 import newsSubmitRoutes from "./routes/newsSubmitRoutes.js";
 import idCardRoutes from "./routes/idCardRoutes.js";
+import bannerRoutes from "./routes/bannerRoutes.js";
 const app = express();
 
 // ================= SERVER =================
@@ -50,6 +51,7 @@ app.use("/api/ads", adRoutes);
 app.use("/api/breaking", breakingRoutes);
 app.use("/api/newsSubmit", newsSubmitRoutes);
 app.use("/api/idcards", idCardRoutes);
+app.use("/api/banners", bannerRoutes);
 // ================= SOCKET =================
 io.on("connection", (socket) => {
   console.log("🔥 User connected:", socket.id);

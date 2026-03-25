@@ -1,0 +1,27 @@
+import mongoose from "mongoose";
+
+const commentSchema = new mongoose.Schema(
+{
+  text: String,
+  user: String,
+},
+{ timestamps: true }
+);
+
+const bannerSchema = new mongoose.Schema(
+{
+  image: String,
+  publicId: String,
+
+  likes: { type: Number, default: 0 },
+  views: { type: Number, default: 0 },
+  shares: { type: Number, default: 0 },
+
+  comments: [commentSchema],
+
+  isActive: { type: Boolean, default: true }
+},
+{ timestamps: true }
+);
+
+export default mongoose.model("Banner", bannerSchema);
