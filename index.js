@@ -10,7 +10,7 @@ import path from "path";
 import connectDB from "./config/db.js";
 import newsRoutes from "./routes/newsRoutes.js";
 import interactionRoutes from "./routes/interactionRoutes.js";
-
+import youtubeRoutes from "./routes/youtubeRoutes.js";
 // ✅ NEW ROUTES
 import adRoutes from "./routes/adRoutes.js";
 import breakingRoutes from "./routes/breakingRoutes.js";
@@ -52,6 +52,7 @@ app.use("/api/breaking", breakingRoutes);
 app.use("/api/newsSubmit", newsSubmitRoutes);
 app.use("/api/idcards", idCardRoutes);
 app.use("/api/banners", bannerRoutes);
+app.use("/api/youtube", youtubeRoutes);
 // ================= SOCKET =================
 io.on("connection", (socket) => {
   console.log("🔥 User connected:", socket.id);
