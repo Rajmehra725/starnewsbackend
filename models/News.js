@@ -1,11 +1,22 @@
 import mongoose from "mongoose";
 
+// Section schema for multiple headings, content, and images
+const SectionSchema = new mongoose.Schema({
+  heading: { type: String, required: false },        // Optional heading
+  content: { type: String, required: true },        // Main paragraph
+  image: { type: String, required: false },         // Optional image
+  bgColor: { type: String, default: "#ffffff" },    // Heading background color
+  textColor: { type: String, default: "#000000" },  // Heading text color
+});
+
 const newsSchema = new mongoose.Schema(
   {
     title: String,
     description: String,
     category: String,
-    content: String,
+    content: String,               // Old content field remains
+    sections: [SectionSchema],     // ✅ New rich content sections
+
     status: {
       type: String,
       enum: ["draft", "published"],
@@ -13,9 +24,6 @@ const newsSchema = new mongoose.Schema(
     },
     featuredImage: String,
     images: [String],
-
-    views: { type: Number, default: 0 },
-    shares: { type: Number, default: 0 },
 
     // ❤️ LIKE
     likes: {
@@ -27,7 +35,7 @@ const newsSchema = new mongoose.Schema(
     // 👁️ VIEW TRACKING
     viewedBy: [String],
 
-    // 🔗 SHARE TRACKING (NEW ADD)
+    // 🔗 SHARE TRACKING
     sharedBy: [String],
 
     // 💬 COMMENTS

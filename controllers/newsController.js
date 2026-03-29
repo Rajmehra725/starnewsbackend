@@ -3,7 +3,7 @@ import News from "../models/News.js";
 // ✅ CREATE
 export const createNews = async (req, res) => {
   try {
-    const { title, description, category, content, status } = req.body;
+    const { title, description, category, content, status, sections } = req.body;
 
     // 🔥 Cloudinary URL
     const featuredImage =
@@ -17,6 +17,7 @@ export const createNews = async (req, res) => {
       description,
       category,
       content,
+      sections: sections ? JSON.parse(sections) : [], // ✅ parse sections JSON
       status,
       featuredImage,
       images,
@@ -39,7 +40,7 @@ export const getNews = async (req, res) => {
   }
 };
 
-// ✅ UPDATE (🔥 MAIN FIX)
+// ✅ UPDATE
 export const updateNews = async (req, res) => {
   try {
     const id = req.params.id;
@@ -61,6 +62,9 @@ export const updateNews = async (req, res) => {
       id,
       {
         ...req.body,
+        sections: req.body.sections
+          ? JSON.parse(req.body.sections) // ✅ parse sections JSON
+          : existing.sections,
         featuredImage,
         images,
       },
