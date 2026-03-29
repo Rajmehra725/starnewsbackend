@@ -17,6 +17,8 @@ import breakingRoutes from "./routes/breakingRoutes.js";
 import newsSubmitRoutes from "./routes/newsSubmitRoutes.js";
 import idCardRoutes from "./routes/idCardRoutes.js";
 import bannerRoutes from "./routes/bannerRoutes.js";
+import satnaRoutes from "./routes/satnaRoutes.js";
+import chhatarpurRoutes from "./routes/chhatarpurRoutes.js"
 const app = express();
 
 // ================= SERVER =================
@@ -46,6 +48,8 @@ app.use("/uploads", express.static(path.join("uploads")));
 
 // ================= ROUTES =================
 app.use("/api/news", newsRoutes);
+app.use("/api/satna", satnaRoutes);
+app.use("/api/chhatarpur", chhatarpurRoutes);
 app.use("/api/interactions", interactionRoutes);
 app.use("/api/ads", adRoutes);
 app.use("/api/breaking", breakingRoutes);
