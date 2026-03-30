@@ -1,26 +1,31 @@
+import mongoose from "mongoose";
 import News from "../models/News.js";
-import { io } from "../index.js"; // 🔥 IMPORT SOCKET.IO INSTANCE
+import { io } from "../index.js";
 
-// ❤️ LIKE TOGGLE (REAL-TIME)
+
+// ❤️ LIKE TOGGLE
 export const toggleLike = async (req, res) => {
   try {
-    const { newsId } = req.params;
+    const { id } = req.params;
     const { visitorId } = req.body;
 
     if (!visitorId) {
       return res.status(400).json({ msg: "visitorId required" });
     }
 
-    const news = await News.findById(newsId);
+    const news = await findNewsByIdOrSlug(id);
+
     if (!news) {
       return res.status(404).json({ msg: "News not found" });
     }
 
+    news.likedBy = news.likedBy || [];
+
     const alreadyLiked = news.likedBy.includes(visitorId);
 
     if (alreadyLiked) {
-      news.likes -= 1;
-      news.likedBy = news.likedBy.filter((id) => id !== visitorId);
+      news.likes = Math.max(0, news.likes - 1);
+      news.likedBy.pull(visitorId);
     } else {
       news.likes += 1;
       news.likedBy.push(visitorId);
@@ -28,34 +33,35 @@ export const toggleLike = async (req, res) => {
 
     await news.save();
 
-    // 🔥 REAL-TIME UPDATE
-    io.to(newsId).emit("likeUpdated", {
-      newsId,
+    io.emit("likeUpdated", {
+      newsId: news._id,
       likes: news.likes,
     });
 
-    res.json({
-      success: true,
-      likes: news.likes,
-      liked: !alreadyLiked,
-    });
+    res.json({ success: true, likes: news.likes });
+
   } catch (error) {
-    console.error("Like Error:", error);
+    console.error(error);
     res.status(500).json({ msg: "Server error" });
   }
 };
 
-// 💬 ADD COMMENT (REAL-TIME)
+
+// 💬 ADD COMMENT
 export const addComment = async (req, res) => {
   try {
-    const { newsId } = req.params;
+    const { id } = req.params;
     const { text, visitorId } = req.body;
 
     if (!text || !visitorId) {
-      return res.status(400).json({ msg: "Text and visitorId required" });
+      return res.status(400).json({ msg: "Text & visitorId required" });
     }
 
-    const news = await News.findById(newsId);
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ msg: "Invalid ID" });
+    }
+
+    const news = await News.findById(id);
     if (!news) {
       return res.status(404).json({ msg: "News not found" });
     }
@@ -63,33 +69,37 @@ export const addComment = async (req, res) => {
     const comment = {
       text,
       visitorId,
+      createdAt: new Date(),
     };
 
+    news.comments = news.comments || [];
     news.comments.push(comment);
+
     await news.save();
 
-    const newComment = news.comments[news.comments.length - 1];
+    const newComment = news.comments.at(-1);
 
-    // 🔥 REAL-TIME COMMENT
-    io.to(newsId).emit("newComment", {
-      newsId,
+    io.emit("newComment", {
+      newsId: id,
       comment: newComment,
     });
 
-    res.json({
-      success: true,
-      comment: newComment,
-    });
+    res.json({ success: true, comment: newComment });
   } catch (error) {
-    console.error("Comment Error:", error);
-    res.status(500).json({ msg: "Server error" });
+    console.error("COMMENT ERROR:", error);
+    res.status(500).json({ msg: error.message });
   }
 };
 
-// ❌ DELETE COMMENT (REAL-TIME)
+
+// ❌ DELETE COMMENT
 export const deleteComment = async (req, res) => {
   try {
     const { newsId, commentId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(newsId)) {
+      return res.status(400).json({ msg: "Invalid ID" });
+    }
 
     const news = await News.findById(newsId);
     if (!news) {
@@ -102,26 +112,27 @@ export const deleteComment = async (req, res) => {
 
     await news.save();
 
-    // 🔥 REAL-TIME DELETE
-    io.to(newsId).emit("commentDeleted", {
+    io.emit("commentDeleted", {
       newsId,
       commentId,
     });
 
-    res.json({
-      success: true,
-      msg: "Comment deleted",
-    });
+    res.json({ success: true });
   } catch (error) {
-    console.error("Delete Error:", error);
+    console.error("DELETE ERROR:", error);
     res.status(500).json({ msg: "Server error" });
   }
 };
+
 
 // 📥 GET COMMENTS
 export const getComments = async (req, res) => {
   try {
     const { newsId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(newsId)) {
+      return res.status(400).json({ msg: "Invalid ID" });
+    }
 
     const news = await News.findById(newsId);
     if (!news) {
@@ -133,10 +144,13 @@ export const getComments = async (req, res) => {
       comments: news.comments,
     });
   } catch (error) {
-    console.error("Fetch Error:", error);
+    console.error("FETCH ERROR:", error);
     res.status(500).json({ msg: "Server error" });
   }
 };
+
+
+// 👁️ VIEW (SAFE FIX)
 export const addView = async (req, res) => {
   try {
     const { newsId } = req.params;
@@ -146,33 +160,38 @@ export const addView = async (req, res) => {
       return res.status(400).json({ msg: "visitorId required" });
     }
 
+    if (!mongoose.Types.ObjectId.isValid(newsId)) {
+      return res.status(400).json({ msg: "Invalid ID" });
+    }
+
     const news = await News.findById(newsId);
     if (!news) {
       return res.status(404).json({ msg: "News not found" });
     }
 
-    // ✅ UNIQUE VIEW
+    news.viewedBy = news.viewedBy || [];
+
     if (!news.viewedBy.includes(visitorId)) {
-      news.views += 1;
+      news.views = (news.views || 0) + 1;
       news.viewedBy.push(visitorId);
     }
 
     await news.save();
 
-    io.to(newsId).emit("viewUpdated", {
+    io.emit("viewUpdated", {
       newsId,
       views: news.views,
     });
 
-    res.json({
-      success: true,
-      views: news.views,
-    });
+    res.json({ success: true, views: news.views });
   } catch (error) {
-    console.error("View Error:", error);
+    console.error("VIEW ERROR:", error);
     res.status(500).json({ msg: "Server error" });
   }
 };
+
+
+// 🔗 SHARE
 export const addShare = async (req, res) => {
   try {
     const { newsId } = req.params;
@@ -182,30 +201,32 @@ export const addShare = async (req, res) => {
       return res.status(400).json({ msg: "visitorId required" });
     }
 
+    if (!mongoose.Types.ObjectId.isValid(newsId)) {
+      return res.status(400).json({ msg: "Invalid ID" });
+    }
+
     const news = await News.findById(newsId);
     if (!news) {
       return res.status(404).json({ msg: "News not found" });
     }
 
-    // ✅ UNIQUE SHARE
+    news.sharedBy = news.sharedBy || [];
+
     if (!news.sharedBy.includes(visitorId)) {
-      news.shares += 1;
+      news.shares = (news.shares || 0) + 1;
       news.sharedBy.push(visitorId);
     }
 
     await news.save();
 
-    io.to(newsId).emit("shareUpdated", {
+    io.emit("shareUpdated", {
       newsId,
       shares: news.shares,
     });
 
-    res.json({
-      success: true,
-      shares: news.shares,
-    });
+    res.json({ success: true, shares: news.shares });
   } catch (error) {
-    console.error("Share Error:", error);
+    console.error("SHARE ERROR:", error);
     res.status(500).json({ msg: "Server error" });
   }
 };

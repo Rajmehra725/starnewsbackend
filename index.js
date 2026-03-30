@@ -69,7 +69,13 @@ io.on("connection", (socket) => {
     console.log("❌ User disconnected:", socket.id);
   });
 });
+io.on("connection", (socket) => {
+  console.log("User connected:", socket.id);
 
+  socket.on("joinRoom", (newsId) => {
+    socket.join(newsId);
+  });
+});
 // ================= DB =================
 connectDB();
 

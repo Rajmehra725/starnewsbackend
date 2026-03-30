@@ -9,6 +9,13 @@ import {
   deleteNews,
   incrementViews,
   incrementShares,
+  toggleLike,
+  addView,
+  addShare,
+  addComment,
+  getComments,
+  deleteComment,
+  updateComment,
 } from "../controllers/newsController.js";
 
 const router = express.Router();
@@ -33,7 +40,14 @@ router.put(
   ]),
   updateNews
 );
+router.post("/:id/like", toggleLike);
+router.post("/:id/view", addView);
+router.post("/:id/share", addShare);
 
+router.post("/:id/comment", addComment);
+router.get("/:id/comments", getComments);
+router.delete("/:newsId/comment/:commentId", deleteComment);
+router.put("/:newsId/comment/:commentId", updateComment);
 router.get("/", getNews);
 router.delete("/:id", deleteNews);
 router.put("/view/:id", incrementViews);

@@ -107,6 +107,144 @@ export const incrementViews = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+export const toggleLike = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { userId } = req.body;
+
+    const news = await News.findById(id);
+    if (!news) return res.status(404).json({ msg: "News not found" });
+
+    const liked = news.likedBy.includes(userId);
+
+    if (liked) {
+      news.likedBy = news.likedBy.filter(u => u !== userId);
+      news.likes--;
+    } else {
+      news.likedBy.push(userId);
+      news.likes++;
+    }
+
+    await news.save();
+    res.json({ likes: news.likes, liked: !liked });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// 👁️ VIEW
+export const addView = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { userId } = req.body;
+
+    const news = await News.findById(id);
+    if (!news) return res.status(404).json({ msg: "News not found" });
+
+    if (!news.viewedBy.includes(userId)) {
+      news.viewedBy.push(userId);
+    }
+
+    await news.save();
+    res.json({ views: news.viewedBy.length });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// 🔗 SHARE
+export const addShare = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { userId } = req.body;
+
+    const news = await News.findById(id);
+    if (!news) return res.status(404).json({ msg: "News not found" });
+
+    if (!news.sharedBy.includes(userId)) {
+      news.sharedBy.push(userId);
+    }
+
+    await news.save();
+    res.json({ shares: news.sharedBy.length });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// 💬 ADD COMMENT
+export const addComment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { text, visitorId, name } = req.body;
+
+    const news = await News.findById(id);
+    if (!news) return res.status(404).json({ msg: "News not found" });
+
+    news.comments.push({ text, visitorId, name });
+    await news.save();
+
+    res.json(news.comments);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// 📥 GET COMMENTS
+export const getComments = async (req, res) => {
+  try {
+    const news = await News.findById(req.params.id).select("comments");
+    if (!news) return res.status(404).json({ msg: "News not found" });
+
+    res.json(news.comments.reverse());
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// ❌ DELETE COMMENT
+export const deleteComment = async (req, res) => {
+  try {
+    const { newsId, commentId } = req.params;
+    const { visitorId } = req.body;
+
+    const news = await News.findById(newsId);
+    const comment = news.comments.id(commentId);
+
+    if (!comment) return res.status(404).json({ msg: "Comment not found" });
+    if (comment.visitorId !== visitorId)
+      return res.status(403).json({ msg: "Unauthorized" });
+
+    comment.deleteOne();
+    await news.save();
+
+    res.json({ msg: "Deleted" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// ✏️ UPDATE COMMENT
+export const updateComment = async (req, res) => {
+  try {
+    const { newsId, commentId } = req.params;
+    const { text, visitorId } = req.body;
+
+    const news = await News.findById(newsId);
+    const comment = news.comments.id(commentId);
+
+    if (!comment) return res.status(404).json({ msg: "Comment not found" });
+    if (comment.visitorId !== visitorId)
+      return res.status(403).json({ msg: "Unauthorized" });
+
+    comment.text = text;
+    await news.save();
+
+    res.json(comment);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
 
 // ✅ SHARE
 export const incrementShares = async (req, res) => {
