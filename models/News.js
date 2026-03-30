@@ -30,22 +30,14 @@ const newsSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
-  likes: {
-  type: Number,
-  default: 0,
-},
-likedBy: [
-  {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
-  },
-],
-viewedBy: [
-  {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
-  },
-],
+    likedBy: [String],
+
+    // 👁️ VIEW TRACKING
+    viewedBy: [String],
+
+    // 🔗 SHARE TRACKING
+    sharedBy: [String],
+
     // 💬 COMMENTS
     comments: [
       {

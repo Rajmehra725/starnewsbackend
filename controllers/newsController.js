@@ -102,13 +102,8 @@ export const incrementViews = async (req, res) => {
       { new: true }
     );
 
-    if (!news) {
-      return res.status(404).json({ msg: "News not found" });
-    }
-
-    res.json({ views: news.views });
+    res.json(news);
   } catch (err) {
-    console.error("View increment error:", err);
     res.status(500).json({ error: err.message });
   }
 };
@@ -120,17 +115,12 @@ export const toggleLike = async (req, res) => {
     const news = await News.findById(id);
     if (!news) return res.status(404).json({ msg: "News not found" });
 
-    // 🔥 Fix: ObjectId compare
-    const alreadyLiked = news.likedBy.some(
-      (u) => u.toString() === userId
-    );
+    const liked = news.likedBy.includes(userId);
 
-    if (alreadyLiked) {
-      news.likedBy = news.likedBy.filter(
-        (u) => u.toString() !== userId
-      );
+    if (liked) {
+      news.likedBy = news.likedBy.filter(u => u !== userId);
 
-      // ❗ Negative prevent
+      // ✅ Prevent negative likes
       news.likes = Math.max(0, news.likes - 1);
     } else {
       news.likedBy.push(userId);
@@ -141,14 +131,13 @@ export const toggleLike = async (req, res) => {
 
     res.json({
       likes: news.likes,
-      liked: !alreadyLiked,
+      liked: !liked
     });
+
   } catch (err) {
-    console.error("Like error:", err);
     res.status(500).json({ error: err.message });
   }
 };
-
 // 👁️ VIEW
 export const addView = async (req, res) => {
   try {
@@ -158,20 +147,13 @@ export const addView = async (req, res) => {
     const news = await News.findById(id);
     if (!news) return res.status(404).json({ msg: "News not found" });
 
-    const alreadyViewed = news.viewedBy.some(
-      (u) => u.toString() === userId
-    );
-
-    if (!alreadyViewed) {
+    if (!news.viewedBy.includes(userId)) {
       news.viewedBy.push(userId);
-      await news.save();
     }
 
-    res.json({
-      views: news.viewedBy.length,
-    });
+    await news.save();
+    res.json({ views: news.viewedBy.length });
   } catch (err) {
-    console.error("View error:", err);
     res.status(500).json({ error: err.message });
   }
 };
