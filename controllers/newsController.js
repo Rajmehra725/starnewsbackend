@@ -147,17 +147,28 @@ export const addView = async (req, res) => {
     const news = await News.findById(id);
     if (!news) return res.status(404).json({ msg: "News not found" });
 
+    // ✅ unique view
     if (!news.viewedBy.includes(userId)) {
       news.viewedBy.push(userId);
     }
 
+    // ✅ sync views count
+    news.views = news.viewedBy.length;
+
     await news.save();
-    res.json({ views: news.viewedBy.length });
+
+    // 🔥 SOCKET EMIT (MOST IMPORTANT)
+    const io = req.app.get("io");
+    io.emit("viewsUpdated", {
+      newsId: news._id,
+      views: news.views,
+    });
+
+    res.json({ views: news.views });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
-
 // 🔗 SHARE
 export const addShare = async (req, res) => {
   try {

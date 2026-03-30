@@ -18,7 +18,8 @@ import newsSubmitRoutes from "./routes/newsSubmitRoutes.js";
 import idCardRoutes from "./routes/idCardRoutes.js";
 import bannerRoutes from "./routes/bannerRoutes.js";
 import satnaRoutes from "./routes/satnaRoutes.js";
-import chhatarpurRoutes from "./routes/chhatarpurRoutes.js"
+import chhatarpurRoutes from "./routes/chhatarpurRoutes.js";
+
 const app = express();
 
 // ================= SERVER =================
@@ -30,8 +31,11 @@ export const io = new Server(server, {
     origin: "*",
     methods: ["GET", "POST"],
   },
-  transports: ["websocket", "polling"], // ⭐ IMPORTANT
+  transports: ["websocket", "polling"],
 });
+
+// 🔥 VERY IMPORTANT (MISSING LINE - FIXED)
+app.set("io", io);
 
 // ================= MIDDLEWARE =================
 app.use(
@@ -57,6 +61,7 @@ app.use("/api/newsSubmit", newsSubmitRoutes);
 app.use("/api/idcards", idCardRoutes);
 app.use("/api/banners", bannerRoutes);
 app.use("/api/youtube", youtubeRoutes);
+
 // ================= SOCKET =================
 io.on("connection", (socket) => {
   console.log("🔥 User connected:", socket.id);
@@ -65,20 +70,22 @@ io.on("connection", (socket) => {
     socket.join(newsId);
   });
 
+  socket.on("joinRoom", (newsId) => {
+    socket.join(newsId);
+  });
+
   socket.on("disconnect", () => {
     console.log("❌ User disconnected:", socket.id);
   });
 });
-io.on("connection", (socket) => {
-  console.log("User connected:", socket.id);
 
-  socket.on("joinRoom", (newsId) => {
-    socket.join(newsId);
-  });
-});
 // ================= DB =================
 connectDB();
 
 // ================= START =================
-const PORT = process.env.PORT || 5002; // 5001 instead of 5000
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+const PORT = process.env.PORT || 5002;
+
+// 🔥 FIX: app.listen ❌ → server.listen ✅
+server.listen(PORT, () =>
+  console.log(`Server running on port ${PORT}`)
+);
