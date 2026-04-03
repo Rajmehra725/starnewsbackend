@@ -5,27 +5,91 @@ export const createNews = async (req, res) => {
   try {
     const { title, description, category, content, status, sections } = req.body;
 
-    // 🔥 Cloudinary URL
+    // 🖼️ Images
     const featuredImage =
       req.files?.featuredImage?.[0]?.path || "";
 
     const images =
       req.files?.images?.map((file) => file.path) || [];
 
+    // 🧠 Sections parse
+    let parsedSections = [];
+    if (sections) {
+      try {
+        parsedSections = JSON.parse(sections);
+      } catch (e) {
+        console.log("Sections parse error:", e.message);
+      }
+    }
+
+    // 💾 Save news
     const news = await News.create({
       title,
       description,
       category,
       content,
-      sections: sections ? JSON.parse(sections) : [], // ✅ parse sections JSON
+      sections: parsedSections,
       status,
       featuredImage,
       images,
     });
 
-    res.json(news);
+    // 🔔 SEND NOTIFICATION
+    if (status === "published") {
+      try {
+        await axios.post(
+          "https://onesignal.com/api/v1/notifications",
+          {
+            app_id: "eeee5e2f-e240-4204-b29b-32b080e46210",
+
+            // 🎯 CATEGORY TARGETING
+            filters: [
+              { field: "tag", key: "category", relation: "=", value: category }
+            ],
+
+            headings: { en: `🔥 ${category} News` },
+
+            contents: { en: title },
+
+            url: `https://starnewsnetworks.com/news/${news._id}`,
+
+            // 🖼️ Images
+            big_picture: featuredImage || images[0] || "",
+            chrome_web_image: featuredImage || images[0] || "",
+
+            // 🧿 Icons
+            small_icon: "https://starnewsnetworks.com/logo.png",
+            large_icon: featuredImage || "https://starnewsnetworks.com/logo.png",
+
+            // 🎯 Buttons
+            buttons: [
+              {
+                id: "read",
+                text: "📖 Read Now",
+                url: `https://starnewsnetworks.com/news/${news._id}`,
+              }
+            ],
+          },
+          {
+            headers: {
+              Authorization: "os_v2_app_53xf4l7cibbajmu3gkyibzdccbqkgovfc4ker7fscqglo4zz3rjtoflrxgc32lnxhk2egvgp54sc7ys4hrblwi54ljleiuiigp6orfi",
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        console.log("✅ Smart Notification Sent");
+      } catch (err) {
+        console.log("❌ Notification Error:", err.response?.data || err.message);
+      }
+    }
+
+    res.json({
+      success: true,
+      data: news,
+    });
   } catch (err) {
-    console.error(err);
+    console.error("❌ Error:", err);
     res.status(500).json({ error: err.message });
   }
 };
