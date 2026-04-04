@@ -8,11 +8,8 @@ export const createNews = async (req, res) => {
     console.log("📌 STATUS:", status); // DEBUG
 
     // 🖼️ Images
-    const featuredImage =
-      req.files?.featuredImage?.[0]?.path || "";
-
-    const images =
-      req.files?.images?.map((file) => file.path) || [];
+    const featuredImage = req.files?.featuredImage?.[0]?.path || "";
+    const images = req.files?.images?.map((file) => file.path) || [];
 
     // 🧠 Sections parse
     let parsedSections = [];
@@ -44,49 +41,56 @@ export const createNews = async (req, res) => {
           {
             app_id: "eeee5e2f-e240-4204-b29b-32b080e46210",
 
-            // 👉 TEMP: sabko bhejne ke liye (filter issue avoid)
-            included_segments: ["All"],
-
-            // 🎯 CATEGORY TARGETING (baad me enable karna)
-            // filters: [
-            //   { field: "tag", key: "category", relation: "=", value: category }
-            // ],
+            // Send to all subscribed users
+            included_segments: ["Subscribed Users"],
 
             headings: { en: `🔥 ${category} News` },
-
             contents: { en: title },
-
             url: `https://starnewsnetworks.com/news/${news._id}`,
 
-            // 🖼️ Images (safe handling)
-            big_picture: featuredImage || images[0] || undefined,
-            chrome_web_image: featuredImage || images[0] || undefined,
+            // Images (fully qualified HTTPS URLs)
+            big_picture: featuredImage
+              ? `https://starnewsnetworks.com/${featuredImage}`
+              : images[0]
+              ? `https://starnewsnetworks.com/${images[0]}`
+              : undefined,
 
-            // 🧿 Icons
+            chrome_web_image: featuredImage
+              ? `https://starnewsnetworks.com/${featuredImage}`
+              : images[0]
+              ? `https://starnewsnetworks.com/${images[0]}`
+              : undefined,
+
+            // Icons
             small_icon: "https://starnewsnetworks.com/logo.jpeg",
-            large_icon: featuredImage || "https://starnewsnetworks.com/logo.jpeg",
+            large_icon: featuredImage
+              ? `https://starnewsnetworks.com/${featuredImage}`
+              : "https://starnewsnetworks.com/logo.jpeg",
 
-            // 🎯 Buttons
+            // Action buttons
             buttons: [
               {
                 id: "read",
                 text: "📖 Read Now",
                 url: `https://starnewsnetworks.com/news/${news._id}`,
-              }
+              },
             ],
           },
           {
             headers: {
-              // ❗ FIX: Basic lagana mandatory hai
-              Authorization: "Basic os_v2_app_53xf4l7cibbajmu3gkyibzdccbqkgovfc4ker7fscqglo4zz3rjtoflrxgc32lnxhk2egvgp54sc7ys4hrblwi54ljleiuiigp6orfi",
+              Authorization:
+                "Basic os_v2_app_53xf4l7cibbajmu3gkyibzdccarxqfddaluuu4ffpbsazy4h262u4osufsmceky4rtn2kkjgw5zv4rjtrdpngxp3aovtpvplxbo7y3a",
               "Content-Type": "application/json",
             },
           }
         );
 
-        console.log("✅ Smart Notification Sent:", response.data);
+        console.log("✅ Notification Sent:", response.data);
       } catch (err) {
-        console.log("❌ Notification Error:", err.response?.data || err.message);
+        console.log(
+          "❌ Notification Error:",
+          err.response?.data || err.message
+        );
       }
     }
 
