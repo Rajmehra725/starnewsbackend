@@ -63,8 +63,8 @@ export const createNews = async (req, res) => {
             chrome_web_image: featuredImage || images[0] || undefined,
 
             // 🧿 Icons
-            small_icon: "https://starnewsnetworks.com/logo.png",
-            large_icon: featuredImage || "https://starnewsnetworks.com/logo.png",
+            small_icon: "https://starnewsnetworks.com/logo.jpeg",
+            large_icon: featuredImage || "https://starnewsnetworks.com/logo.jpeg",
 
             // 🎯 Buttons
             buttons: [
