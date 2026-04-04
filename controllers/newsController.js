@@ -5,7 +5,15 @@ export const createNews = async (req, res) => {
   try {
     const { title, description, category, content, status, sections } = req.body;
 
-    console.log("📌 STATUS:", status); // DEBUG
+    console.log("📌 STATUS:", status);
+
+    // ✅ Basic Validation
+    if (!title || !category) {
+      return res.status(400).json({
+        success: false,
+        error: "Title and category are required",
+      });
+    }
 
     // 🖼️ Images
     const featuredImage = req.files?.featuredImage?.[0]?.path || "";
@@ -17,9 +25,21 @@ export const createNews = async (req, res) => {
       try {
         parsedSections = JSON.parse(sections);
       } catch (e) {
-        console.log("Sections parse error:", e.message);
+        console.log("❌ Sections parse error:", e.message);
+        return res.status(400).json({
+          success: false,
+          error: "Invalid sections JSON",
+        });
       }
     }
+
+    // 🔗 Image URL Fix Function
+    const getFullUrl = (path) => {
+      if (!path) return undefined;
+      return path.startsWith("http")
+        ? path
+        : `https://starnewsnetworks.com/${path}`;
+    };
 
     // 💾 Save news
     const news = await News.create({
@@ -33,65 +53,57 @@ export const createNews = async (req, res) => {
       images,
     });
 
-    // 🔔 SEND NOTIFICATION
-    if (status && status.toLowerCase() === "published") {
-      try {
-        const response = await axios.post(
-          "https://onesignal.com/api/v1/notifications",
-          {
-            app_id: "eeee5e2f-e240-4204-b29b-32b080e46210",
+    // 🔔 SEND NOTIFICATION (ASYNC - non-blocking)
+    if (
+      status &&
+      typeof status === "string" &&
+      status.toLowerCase() === "published"
+    ) {
+      setTimeout(async () => {
+        try {
+          const imageUrl = getFullUrl(featuredImage || images[0]);
 
-            // Send to all subscribed users
-            included_segments: ["Subscribed Users"],
+          const response = await axios.post(
+            "https://onesignal.com/api/v1/notifications",
+            {
+              app_id: "eeee5e2f-e240-4204-b29b-32b080e46210",
 
-            headings: { en: `🔥 ${category} News` },
-            contents: { en: title },
-            url: `https://starnewsnetworks.com/news/${news._id}`,
+              included_segments: ["Subscribed Users"],
 
-            // Images (fully qualified HTTPS URLs)
-            big_picture: featuredImage
-              ? `https://starnewsnetworks.com/${featuredImage}`
-              : images[0]
-              ? `https://starnewsnetworks.com/${images[0]}`
-              : undefined,
+              headings: { en: `🔥 ${category} News` },
+              contents: { en: title },
+              url: `https://starnewsnetworks.com/news/${news._id}`,
 
-            chrome_web_image: featuredImage
-              ? `https://starnewsnetworks.com/${featuredImage}`
-              : images[0]
-              ? `https://starnewsnetworks.com/${images[0]}`
-              : undefined,
+              big_picture: imageUrl,
+              chrome_web_image: imageUrl,
 
-            // Icons
-            small_icon: "https://starnewsnetworks.com/logo.jpeg",
-            large_icon: featuredImage
-              ? `https://starnewsnetworks.com/${featuredImage}`
-              : "https://starnewsnetworks.com/logo.jpeg",
+              small_icon: "https://starnewsnetworks.com/logo.jpeg",
+              large_icon: imageUrl || "https://starnewsnetworks.com/logo.jpeg",
 
-            // Action buttons
-            buttons: [
-              {
-                id: "read",
-                text: "📖 Read Now",
-                url: `https://starnewsnetworks.com/news/${news._id}`,
-              },
-            ],
-          },
-          {
-            headers: {
-              Authorization:
-                "Basic os_v2_app_53xf4l7cibbajmu3gkyibzdccarxqfddaluuu4ffpbsazy4h262u4osufsmceky4rtn2kkjgw5zv4rjtrdpngxp3aovtpvplxbo7y3a",
-              "Content-Type": "application/json",
+              buttons: [
+                {
+                  id: "read",
+                  text: "📖 Read Now",
+                  url: `https://starnewsnetworks.com/news/${news._id}`,
+                },
+              ],
             },
-          }
-        );
+            {
+              headers: {
+                Authorization: "os_v2_app_53xf4l7cibbajmu3gkyibzdccc7qyr3hq5ye3xm2ylm7v7gxacwskwhhjkfmd5wvcw4xtbwrlgmdit34ozct6nxlhgylxefgr5gaoeq", // 🔐 सुरक्षित
+                "Content-Type": "application/json",
+              },
+            }
+          );
 
-        console.log("✅ Notification Sent:", response.data);
-      } catch (err) {
-        console.log(
-          "❌ Notification Error:",
-          err.response?.data || err.message
-        );
-      }
+          console.log("✅ Notification Sent:", response.data);
+        } catch (err) {
+          console.log(
+            "❌ Notification Error:",
+            err.response?.data || err.message
+          );
+        }
+      }, 0);
     }
 
     res.json({
@@ -99,11 +111,10 @@ export const createNews = async (req, res) => {
       data: news,
     });
   } catch (err) {
-    console.error("❌ Error:", err);
+    console.error("❌ Error:", err.message);
     res.status(500).json({ error: err.message });
   }
 };
-
 // ✅ GET
 export const getNews = async (req, res) => {
   try {
