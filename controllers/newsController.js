@@ -5,6 +5,8 @@ export const createNews = async (req, res) => {
   try {
     const { title, description, category, content, status, sections } = req.body;
 
+    console.log("📌 STATUS:", status); // DEBUG
+
     // 🖼️ Images
     const featuredImage =
       req.files?.featuredImage?.[0]?.path || "";
@@ -35,17 +37,20 @@ export const createNews = async (req, res) => {
     });
 
     // 🔔 SEND NOTIFICATION
-    if (status === "published") {
+    if (status && status.toLowerCase() === "published") {
       try {
-        await axios.post(
+        const response = await axios.post(
           "https://onesignal.com/api/v1/notifications",
           {
             app_id: "eeee5e2f-e240-4204-b29b-32b080e46210",
 
-            // 🎯 CATEGORY TARGETING
-            filters: [
-              { field: "tag", key: "category", relation: "=", value: category }
-            ],
+            // 👉 TEMP: sabko bhejne ke liye (filter issue avoid)
+            included_segments: ["All"],
+
+            // 🎯 CATEGORY TARGETING (baad me enable karna)
+            // filters: [
+            //   { field: "tag", key: "category", relation: "=", value: category }
+            // ],
 
             headings: { en: `🔥 ${category} News` },
 
@@ -53,9 +58,9 @@ export const createNews = async (req, res) => {
 
             url: `https://starnewsnetworks.com/news/${news._id}`,
 
-            // 🖼️ Images
-            big_picture: featuredImage || images[0] || "",
-            chrome_web_image: featuredImage || images[0] || "",
+            // 🖼️ Images (safe handling)
+            big_picture: featuredImage || images[0] || undefined,
+            chrome_web_image: featuredImage || images[0] || undefined,
 
             // 🧿 Icons
             small_icon: "https://starnewsnetworks.com/logo.png",
@@ -72,13 +77,14 @@ export const createNews = async (req, res) => {
           },
           {
             headers: {
-              Authorization: "os_v2_app_53xf4l7cibbajmu3gkyibzdccbqkgovfc4ker7fscqglo4zz3rjtoflrxgc32lnxhk2egvgp54sc7ys4hrblwi54ljleiuiigp6orfi",
+              // ❗ FIX: Basic lagana mandatory hai
+              Authorization: "Basic os_v2_app_53xf4l7cibbajmu3gkyibzdccbqkgovfc4ker7fscqglo4zz3rjtoflrxgc32lnxhk2egvgp54sc7ys4hrblwi54ljleiuiigp6orfi",
               "Content-Type": "application/json",
             },
           }
         );
 
-        console.log("✅ Smart Notification Sent");
+        console.log("✅ Smart Notification Sent:", response.data);
       } catch (err) {
         console.log("❌ Notification Error:", err.response?.data || err.message);
       }
