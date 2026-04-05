@@ -53,57 +53,59 @@ export const createNews = async (req, res) => {
       images,
     });
 
-    // 🔔 SEND NOTIFICATION (ASYNC - non-blocking)
+    // 🔔 SEND NOTIFICATION (INSTANT)
     if (
       status &&
       typeof status === "string" &&
       status.toLowerCase() === "published"
     ) {
-      setTimeout(async () => {
-        try {
-          const imageUrl = getFullUrl(featuredImage || images[0]);
+      try {
+        const imageUrl = getFullUrl(featuredImage || images[0]);
 
-          const response = await axios.post(
-            "https://onesignal.com/api/v1/notifications",
-            {
-              app_id: "eeee5e2f-e240-4204-b29b-32b080e46210",
+        const response = await axios.post(
+          "https://onesignal.com/api/v1/notifications",
+          {
+            app_id: "5084b9c1-5107-4b55-a60c-72b44ca306b1",
 
-              included_segments: ["Subscribed Users"],
+            included_segments: ["Subscribed Users"],
 
-              headings: { en: `🔥 ${category} News` },
-              contents: { en: title },
-              url: `https://starnewsnetworks.com/news/${news._id}`,
+            headings: { en: `🔥 ${category} News` },
+            contents: { en: title },
 
-              big_picture: imageUrl,
-              chrome_web_image: imageUrl,
+            url: `https://starnewsnetworks.com/news/${news._id}`,
 
-              small_icon: "https://starnewsnetworks.com/logo.jpeg",
-              large_icon: imageUrl || "https://starnewsnetworks.com/logo.jpeg",
+            big_picture: imageUrl,
+            chrome_web_image: imageUrl,
 
-              buttons: [
-                {
-                  id: "read",
-                  text: "📖 Read Now",
-                  url: `https://starnewsnetworks.com/news/${news._id}`,
-                },
-              ],
-            },
-            {
-              headers: {
-                Authorization: "os_v2_app_53xf4l7cibbajmu3gkyibzdccc7qyr3hq5ye3xm2ylm7v7gxacwskwhhjkfmd5wvcw4xtbwrlgmdit34ozct6nxlhgylxefgr5gaoeq", // 🔐 सुरक्षित
-                "Content-Type": "application/json",
+            small_icon: "https://starnewsnetworks.com/logo.jpeg",
+            large_icon: imageUrl || "https://starnewsnetworks.com/logo.jpeg",
+
+            buttons: [
+              {
+                id: "read",
+                text: "📖 Read Now",
+                url: `https://starnewsnetworks.com/news/${news._id}`,
               },
-            }
-          );
+            ],
 
-          console.log("✅ Notification Sent:", response.data);
-        } catch (err) {
-          console.log(
-            "❌ Notification Error:",
-            err.response?.data || err.message
-          );
-        }
-      }, 0);
+            priority: 10,
+            ttl: 0,
+          },
+          {
+            headers: {
+              Authorization: "Basic jeknqpnjkur6f526ciz6yuovc", // ✅ CORRECT KEY
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        console.log("✅ Notification Sent:", response.data);
+      } catch (err) {
+        console.error(
+          "❌ Notification Error:",
+          err.response?.data || err.message
+        );
+      }
     }
 
     res.json({
