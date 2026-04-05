@@ -7,7 +7,6 @@ export const createNews = async (req, res) => {
 
     console.log("📌 STATUS:", status);
 
-    // ✅ Basic Validation
     if (!title || !category) {
       return res.status(400).json({
         success: false,
@@ -15,17 +14,14 @@ export const createNews = async (req, res) => {
       });
     }
 
-    // 🖼️ Images
     const featuredImage = req.files?.featuredImage?.[0]?.path || "";
     const images = req.files?.images?.map((file) => file.path) || [];
 
-    // 🧠 Sections parse
     let parsedSections = [];
     if (sections) {
       try {
         parsedSections = JSON.parse(sections);
       } catch (e) {
-        console.log("❌ Sections parse error:", e.message);
         return res.status(400).json({
           success: false,
           error: "Invalid sections JSON",
@@ -33,7 +29,6 @@ export const createNews = async (req, res) => {
       }
     }
 
-    // 🔗 Image URL Fix Function
     const getFullUrl = (path) => {
       if (!path) return undefined;
       return path.startsWith("http")
@@ -41,7 +36,6 @@ export const createNews = async (req, res) => {
         : `https://starnewsnetworks.com/${path}`;
     };
 
-    // 💾 Save news
     const news = await News.create({
       title,
       description,
@@ -53,41 +47,48 @@ export const createNews = async (req, res) => {
       images,
     });
 
-    // 🔔 SEND NOTIFICATION (INSTANT)
-   console.log("📌 STATUS:", status);
-
-if ((status || "").trim().toLowerCase() === "published") {
-  console.log("🚀 ENTERED NOTIFICATION BLOCK");
-
-  try {
-    console.log("📡 Sending notification...");
-
-    const response = await axios.post(
-      "https://onesignal.com/api/v1/notifications",
-      {
-        app_id: "5084b9c1-5107-4b55-a60c-72b44ca306b1",
-        included_segments: ["All"],
-        headings: { en: "🔥 Star News Networks" },
-        contents: { en: title },
-      },
-      {
-        headers: {
-          Authorization: "Basic jeknqpnjkur6f526ciz6yuovc",
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
-    console.log("✅ Notification Sent:", response.data);
-  } catch (err) {
-    console.log("❌ Notification Error:", err.response?.data || err.message);
-  }
-}
-
+    // ✅ response immediately
     res.json({
       success: true,
       data: news,
     });
+
+    // 🔔 notification logic
+    const isPublished = String(status).toLowerCase().includes("publish");
+
+    if (!isPublished) return;
+
+    try {
+      console.log("📡 Sending notification...");
+
+      const imageUrl = getFullUrl(featuredImage || images[0]);
+
+      const response = await axios.post(
+        "https://onesignal.com/api/v1/notifications",
+        {
+          app_id: "5084b9c1-5107-4b55-a60c-72b44ca306b1",
+          included_segments: ["All"],
+
+          headings: { en: `🔥 ${category} News` },
+          contents: { en: title },
+
+          url: `https://starnewsnetworks.com/news/${news._id}`,
+
+          chrome_web_image: imageUrl,
+          big_picture: imageUrl,
+        },
+        {
+          headers: {
+            Authorization: "Basic jeknqpnjkur6f526ciz6yuovc",
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      console.log("✅ Notification Sent:", response.data);
+    } catch (err) {
+      console.log("❌ Notification Error:", err.response?.data || err.message);
+    }
   } catch (err) {
     console.error("❌ Error:", err.message);
     res.status(500).json({ error: err.message });
