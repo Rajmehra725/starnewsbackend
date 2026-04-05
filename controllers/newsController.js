@@ -66,8 +66,8 @@ if ((status || "").trim().toLowerCase() === "published") {
       "https://onesignal.com/api/v1/notifications",
       {
         app_id: "5084b9c1-5107-4b55-a60c-72b44ca306b1",
-        included_segments: ["Subscribed Users"],
-        headings: { en: "🔥 Test News" },
+        included_segments: ["All"],
+        headings: { en: "🔥 Star News Networks" },
         contents: { en: title },
       },
       {
