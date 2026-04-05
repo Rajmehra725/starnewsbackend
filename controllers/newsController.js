@@ -54,59 +54,35 @@ export const createNews = async (req, res) => {
     });
 
     // 🔔 SEND NOTIFICATION (INSTANT)
-    if (
-      status &&
-      typeof status === "string" &&
-      status.toLowerCase() === "published"
-    ) {
-      try {
-        const imageUrl = getFullUrl(featuredImage || images[0]);
+   console.log("📌 STATUS:", status);
 
-        const response = await axios.post(
-          "https://onesignal.com/api/v1/notifications",
-          {
-            app_id: "5084b9c1-5107-4b55-a60c-72b44ca306b1",
+if ((status || "").trim().toLowerCase() === "published") {
+  console.log("🚀 ENTERED NOTIFICATION BLOCK");
 
-            included_segments: ["Subscribed Users"],
+  try {
+    console.log("📡 Sending notification...");
 
-            headings: { en: `🔥 ${category} News` },
-            contents: { en: title },
-
-            url: `https://starnewsnetworks.com/news/${news._id}`,
-
-            big_picture: imageUrl,
-            chrome_web_image: imageUrl,
-
-            small_icon: "https://starnewsnetworks.com/logo.jpeg",
-            large_icon: imageUrl || "https://starnewsnetworks.com/logo.jpeg",
-
-            buttons: [
-              {
-                id: "read",
-                text: "📖 Read Now",
-                url: `https://starnewsnetworks.com/news/${news._id}`,
-              },
-            ],
-
-            priority: 10,
-            ttl: 0,
-          },
-          {
-            headers: {
-              Authorization: "Basic jeknqpnjkur6f526ciz6yuovc", // ✅ CORRECT KEY
-              "Content-Type": "application/json",
-            },
-          }
-        );
-
-        console.log("✅ Notification Sent:", response.data);
-      } catch (err) {
-        console.error(
-          "❌ Notification Error:",
-          err.response?.data || err.message
-        );
+    const response = await axios.post(
+      "https://onesignal.com/api/v1/notifications",
+      {
+        app_id: "5084b9c1-5107-4b55-a60c-72b44ca306b1",
+        included_segments: ["Subscribed Users"],
+        headings: { en: "🔥 Test News" },
+        contents: { en: title },
+      },
+      {
+        headers: {
+          Authorization: "Basic jeknqpnjkur6f526ciz6yuovc",
+          "Content-Type": "application/json",
+        },
       }
-    }
+    );
+
+    console.log("✅ Notification Sent:", response.data);
+  } catch (err) {
+    console.log("❌ Notification Error:", err.response?.data || err.message);
+  }
+}
 
     res.json({
       success: true,
