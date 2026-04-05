@@ -48,11 +48,7 @@ export const createNews = async (req, res) => {
     });
 
     // ✅ response immediately
-    res.json({
-      success: true,
-      data: news,
-    });
-
+  
     // 🔔 notification logic
     const isPublished = String(status).toLowerCase().includes("publish");
 
@@ -93,6 +89,11 @@ export const createNews = async (req, res) => {
     console.error("❌ Error:", err.message);
     res.status(500).json({ error: err.message });
   }
+    res.json({
+      success: true,
+      data: news,
+    });
+
 };
 // ✅ GET
 export const getNews = async (req, res) => {
