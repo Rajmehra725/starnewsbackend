@@ -2,13 +2,18 @@ import mongoose from "mongoose";
 
 // Section schema for multiple headings, content, and images
 const SectionSchema = new mongoose.Schema({
-  heading: { type: String, required: false },        // Optional heading
-  content: { type: String, required: true },        // Main paragraph
-  image: { type: String, required: false },         // Optional image
-  bgColor: { type: String, default: "#ffffff" },    // Heading background color
-  textColor: { type: String, default: "#000000" },  // Heading text color
-});
+  heading: { type: String, required: false },
+  content: { type: String, required: true },
+  image: { type: String, required: false },
 
+  // heading styles
+  headingBgColor: { type: String, default: "#ffffff" },
+  headingTextColor: { type: String, default: "#000000" },
+
+  // content styles
+  contentBgColor: { type: String, default: "#ffffff" },
+  contentTextColor: { type: String, default: "#000000" },
+});
 const newsSchema = new mongoose.Schema(
   {
     title: String,
