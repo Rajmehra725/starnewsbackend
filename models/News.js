@@ -33,8 +33,14 @@ const newsSchema = new mongoose.Schema(
     likedBy: [String],
 
     // 👁️ VIEW TRACKING
-    viewedBy: [String],
-
+   views: {
+  type: Number,
+  default: 0
+},
+viewedBy: {
+  type: [String],
+  default: []
+},
     // 🔗 SHARE TRACKING
     sharedBy: [String],
 

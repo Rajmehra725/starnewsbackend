@@ -7,7 +7,6 @@ import {
   getNews,
   updateNews,
   deleteNews,
-  incrementViews,
   incrementShares,
   toggleLike,
   addView,
@@ -43,14 +42,13 @@ router.put(
 router.post("/:id/like", toggleLike);
 router.post("/:id/view", addView);
 router.post("/:id/share", addShare);
-
+router.post("/news/:id/view", addView);
 router.post("/:id/comment", addComment);
 router.get("/:id/comments", getComments);
 router.delete("/:newsId/comment/:commentId", deleteComment);
 router.put("/:newsId/comment/:commentId", updateComment);
 router.get("/", getNews);
 router.delete("/:id", deleteNews);
-router.put("/view/:id", incrementViews);
 router.put("/share/:id", incrementShares);
 
 export default router;

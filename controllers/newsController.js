@@ -174,20 +174,7 @@ export const deleteNews = async (req, res) => {
   }
 };
 
-// ✅ VIEW
-export const incrementViews = async (req, res) => {
-  try {
-    const news = await News.findByIdAndUpdate(
-      req.params.id,
-      { $inc: { views: 1 } },
-      { new: true }
-    );
 
-    res.json(news);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
 export const toggleLike = async (req, res) => {
   try {
     const { id } = req.params;
@@ -225,27 +212,35 @@ export const addView = async (req, res) => {
     const { id } = req.params;
     const { userId } = req.body;
 
+    if (!userId) {
+      return res.status(400).json({ msg: "userId required" });
+    }
+
     const news = await News.findById(id);
     if (!news) return res.status(404).json({ msg: "News not found" });
 
-    // ✅ unique view
+    // ensure array
+    if (!news.viewedBy) news.viewedBy = [];
+
+    // unique view
     if (!news.viewedBy.includes(userId)) {
       news.viewedBy.push(userId);
     }
 
-    // ✅ sync views count
+    // sync views
     news.views = news.viewedBy.length;
 
     await news.save();
 
-    // 🔥 SOCKET EMIT (MOST IMPORTANT)
+    // socket emit
     const io = req.app.get("io");
     io.emit("viewsUpdated", {
-      newsId: news._id,
+      newsId: news._id.toString(),
       views: news.views,
     });
 
     res.json({ views: news.views });
+
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
