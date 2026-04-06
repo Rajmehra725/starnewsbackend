@@ -42,7 +42,14 @@ viewedBy: {
   default: []
 },
     // 🔗 SHARE TRACKING
-    sharedBy: [String],
+    shares: {
+  type: Number,
+  default: 0
+},
+sharedBy: {
+  type: [String],
+  default: []
+},
 
     // 💬 COMMENTS
     comments: [

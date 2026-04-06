@@ -251,20 +251,39 @@ export const addShare = async (req, res) => {
     const { id } = req.params;
     const { userId } = req.body;
 
+    if (!userId) {
+      return res.status(400).json({ msg: "userId required" });
+    }
+
     const news = await News.findById(id);
     if (!news) return res.status(404).json({ msg: "News not found" });
 
+    // ensure array
+    if (!news.sharedBy) news.sharedBy = [];
+
+    // unique share
     if (!news.sharedBy.includes(userId)) {
       news.sharedBy.push(userId);
     }
 
+    // sync count
+    news.shares = news.sharedBy.length;
+
     await news.save();
-    res.json({ shares: news.sharedBy.length });
+
+    // 🔥 realtime emit
+    const io = req.app.get("io");
+    io.emit("shareUpdated", {
+      newsId: news._id.toString(),
+      shares: news.shares,
+    });
+
+    res.json({ shares: news.shares });
+
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
-
 // 💬 ADD COMMENT
 export const addComment = async (req, res) => {
   try {
