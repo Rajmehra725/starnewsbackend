@@ -7,7 +7,6 @@ import {
   getNews,
   updateNews,
   deleteNews,
-  incrementShares,
   toggleLike,
   addView,
   addShare,
@@ -49,6 +48,6 @@ router.delete("/:newsId/comment/:commentId", deleteComment);
 router.put("/:newsId/comment/:commentId", updateComment);
 router.get("/", getNews);
 router.delete("/:id", deleteNews);
-router.put("/share/:id", incrementShares);
+
 
 export default router;

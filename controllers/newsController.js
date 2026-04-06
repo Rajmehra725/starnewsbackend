@@ -256,7 +256,9 @@ export const addShare = async (req, res) => {
     }
 
     const news = await News.findById(id);
-    if (!news) return res.status(404).json({ msg: "News not found" });
+    if (!news) {
+      return res.status(404).json({ msg: "News not found" });
+    }
 
     // ensure array
     if (!news.sharedBy) news.sharedBy = [];
@@ -266,19 +268,22 @@ export const addShare = async (req, res) => {
       news.sharedBy.push(userId);
     }
 
-    // sync count
+    // count sync
     news.shares = news.sharedBy.length;
 
     await news.save();
 
-    // 🔥 realtime emit
+    // realtime
     const io = req.app.get("io");
     io.emit("shareUpdated", {
       newsId: news._id.toString(),
       shares: news.shares,
     });
 
-    res.json({ shares: news.shares });
+    res.json({
+      success: true,
+      shares: news.shares
+    });
 
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -358,17 +363,4 @@ export const updateComment = async (req, res) => {
   }
 };
 
-// ✅ SHARE
-export const incrementShares = async (req, res) => {
-  try {
-    const news = await News.findByIdAndUpdate(
-      req.params.id,
-      { $inc: { shares: 1 } },
-      { new: true }
-    );
 
-    res.json(news);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
