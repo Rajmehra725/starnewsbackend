@@ -13,12 +13,29 @@ cloudinary.config({
 export const storage = new CloudinaryStorage({
   cloudinary,
   params: async (req, file) => {
+
+    const isVideo = file.mimetype.startsWith("video");
+
     return {
       folder: "news_uploads",
       public_id: Date.now() + "-" + file.originalname,
-      allowed_formats: ["jpg", "png", "jpeg", "webp"],
-      transformation: [{ width: 800, height: 500, crop: "limit" }],
+
+      resource_type: "auto", // 🔥 image + video both
+
+      allowed_formats: [
+        "jpg", "png", "jpeg", "webp",
+        "mp4", "mov", "avi", "webm" // 🎥 video formats
+      ],
+
+      ...(isVideo
+        ? {}
+        : {
+            transformation: [
+              { width: 800, height: 500, crop: "limit" }
+            ],
+          }),
     };
   },
 });
+
 export default cloudinary;

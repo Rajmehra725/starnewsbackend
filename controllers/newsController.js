@@ -80,7 +80,7 @@ export const createNews = async (req, res) => {
           },
           {
             headers: {
-              Authorization: "Basic os_v2_app_kccltqkra5fvljqmok2eziygwgxqpzwqwqwufeftpuyl7qrsdwep7vtybmrm2cqzeetk4kpctyf7qb2v76hvtbwrhynitpaqsb7ujty",
+              Authorization: "Basic os_v2_app_kccltqkra5fvljqmok2eziygwhoc4ldgghrualnbmhthjvgzfvd5hfzycyn3qsw6ay4tohqxpvp7dez3u53hmmjzbkcjnkox3ino34a",
               "Content-Type": "application/json",
             },
           }

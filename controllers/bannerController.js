@@ -12,11 +12,14 @@ export const createBanner = async (req, res) => {
   const banners = [];
 
   for (const file of files) {
-    const result = await cloudinary.uploader.upload(file.path);
+    const result = await cloudinary.uploader.upload(file.path, {
+      resource_type: "auto", // 🔥 important
+    });
 
     const banner = await Banner.create({
-      image: result.secure_url,
+      url: result.secure_url,
       publicId: result.public_id,
+      type: result.resource_type === "video" ? "video" : "image",
     });
 
     banners.push(banner);
@@ -24,7 +27,6 @@ export const createBanner = async (req, res) => {
 
   res.json(banners);
 };
-
 // READ
 export const getBanners = async (req, res) => {
   const banners = await Banner.find().sort({createdAt:-1});

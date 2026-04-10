@@ -10,8 +10,14 @@ const commentSchema = new mongoose.Schema(
 
 const bannerSchema = new mongoose.Schema(
 {
-  image: String,
+  url: String,        // image ya video dono ka url
   publicId: String,
+
+  type: {
+    type: String,
+    enum: ["image", "video"],
+    default: "image"
+  },
 
   likes: { type: Number, default: 0 },
   views: { type: Number, default: 0 },
