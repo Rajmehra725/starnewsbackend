@@ -19,7 +19,7 @@ import idCardRoutes from "./routes/idCardRoutes.js";
 import bannerRoutes from "./routes/bannerRoutes.js";
 import satnaRoutes from "./routes/satnaRoutes.js";
 import chhatarpurRoutes from "./routes/chhatarpurRoutes.js";
-
+import contactRoutes from "./routes/contactRoutes.js"
 const app = express();
 
 // ================= SERVER =================
@@ -61,7 +61,7 @@ app.use("/api/newsSubmit", newsSubmitRoutes);
 app.use("/api/idcards", idCardRoutes);
 app.use("/api/banners", bannerRoutes);
 app.use("/api/youtube", youtubeRoutes);
-
+app.use("/api/contact",contactRoutes)
 // ================= SOCKET =================
 io.on("connection", (socket) => {
   console.log("🔥 User connected:", socket.id);
