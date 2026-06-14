@@ -83,18 +83,36 @@ if (isPublished) {
 
       // 🔥 Messages
       const messages = tokens.map((t) => ({
-  to: t.token,
-  sound: "default",
-  title: title,
-  body: description,
+to: t.token,
+sound: "default",
 
-  image: imageUrl,
+// 🔥 Main Title
+title: `📰 ${category} | ${title}`,
+body: description || "Tap to read full news",
 
-  data: {
-    newsId: news._id,
-    image: imageUrl,
-  }
+
+// 🖼️ Large Image (Android supported)
+...(imageUrl && {
+image: imageUrl,
+}),
+
+// 📦 Extra Data
+data: {
+newsId: news._id.toString(),
+title,
+description,
+category,
+image: imageUrl,
+
+
+url: `https://starnewsnetworks.com/news/${news._id}`,
+
+},
+
+// Android Priority
+priority: "high",
 }));
+
 
       console.log(
         "📤 Messages:",
