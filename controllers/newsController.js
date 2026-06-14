@@ -1,5 +1,6 @@
 import axios from "axios";
 import News from "../models/News.js";
+import Token from "../models/Token.js";
 
 // ✅ CREATE
 export const createNews = async (req, res) => {
@@ -55,61 +56,78 @@ export const createNews = async (req, res) => {
     });
 
     // 🔔 Notification Logic (Expo Push)
-    const isPublished =
-      status === "publish" || status === "published";
+    
+const isPublished =
+  status === "publish" || status === "published";
 
-    if (isPublished) {
-      try {
-        console.log("📡 Sending Expo notification...");
+if (isPublished) {
+  try {
+    console.log("📡 Sending Expo notification...");
 
-        // 👉 Tokens lao (DB ya memory)
-        const tokens = await Token.find(); // ya globalTokens
+    // 📱 Get Tokens
+    const tokens = await Token.find();
 
-        // ✅ Image URL
-        const imageUrl = getFullUrl(
-          featuredImage || (images.length > 0 ? images[0] : "")
-        );
+    console.log("📱 Total Tokens:", tokens.length);
+    console.log(
+      "📱 Tokens:",
+      tokens.map((t) => t.token)
+    );
 
-        // 🔥 Messages
-        const messages = tokens.map((t) => ({
-          to: t.token,
-          sound: "default",
-          title: `📰 ${category} News`,
-          body: title,
-
-          // 🖼️ IMAGE SUPPORT
-          ...(imageUrl && {
-            image: imageUrl, // Android me show hoga
-          }),
-
-          data: {
-            newsId: news._id,
-            image: imageUrl,
-          },
-        }));
-
-        // 🚀 Send to Expo
-        const response = await axios.post(
-          "https://exp.host/--/api/v2/push/send",
-          messages,
-          {
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        );
-
-        console.log("✅ Notification Sent:", response.data);
-
-      } catch (err) {
-        console.log(
-          "❌ Notification Error:",
-          err.response?.data || err.message
-        );
-      }
+    if (!tokens.length) {
+      console.log("❌ No tokens found");
     } else {
-      console.log("⚠️ Not published, notification skipped");
+      // ✅ Image URL
+      const imageUrl = getFullUrl(
+        featuredImage || (images.length > 0 ? images[0] : "")
+      );
+
+      // 🔥 Messages
+      const messages = tokens.map((t) => ({
+  to: t.token,
+  sound: "default",
+  title: title,
+  body: description,
+
+  image: imageUrl,
+
+  data: {
+    newsId: news._id,
+    image: imageUrl,
+  }
+}));
+
+      console.log(
+        "📤 Messages:",
+        JSON.stringify(messages, null, 2)
+      );
+
+      // 🚀 Send to Expo
+      const response = await axios.post(
+        "https://exp.host/--/api/v2/push/send",
+        messages,
+        {
+          headers: {
+            Accept: "application/json",
+            "Accept-Encoding": "gzip, deflate",
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      console.log(
+        "✅ Expo Response:",
+        JSON.stringify(response.data, null, 2)
+      );
     }
+  } catch (err) {
+    console.log(
+      "❌ Notification Error:",
+      err.response?.data || err.message
+    );
+  }
+} else {
+  console.log("⚠️ Not published, notification skipped");
+}
 
     // ✅ Final Response
     res.json({
