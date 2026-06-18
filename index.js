@@ -25,6 +25,8 @@ import contactRoutes from "./routes/contactRoutes.js"
 import advertisementRoutes from "./routes/advertisementRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
 import tokenRoutes from "./routes/tokenRoutes.js";
+import galleryRoutes from "./routes/galleryRoutes.js";
+import epaperRoutes from "./routes/epaperRoutes.js";
 const app = express();
 
 // ================= SERVER =================
@@ -70,6 +72,8 @@ app.use("/api/contact",contactRoutes)
 app.use("/api/advertisement",advertisementRoutes)
 app.use("/api/notification", notificationRoutes);
 app.use("/api", tokenRoutes);
+app.use("/api/gallery", galleryRoutes);
+app.use("/api/epaper", epaperRoutes);
 
 // ================= SOCKET =================
 io.on("connection", (socket) => {
