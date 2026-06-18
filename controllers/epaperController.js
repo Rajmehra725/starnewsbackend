@@ -1,38 +1,29 @@
 import Epaper from "../models/Epaper.js";
 
-// =========================
-// Helper: Build Image URL
-// =========================
 const getImageUrl = (req, filename) => {
   return `${req.protocol}://${req.get("host")}/uploads/${filename}`;
 };
 
-// =========================
+
 // Create Epaper
-// =========================
 export const createEpaper = async (req, res) => {
   try {
     const { title, publishDate } = req.body;
 
-    if (!req.file) {
-      return res.status(400).json({
-        success: false,
-        message: "Image required",
-      });
-    }
+    const pages =
+      req.files?.map((file) => ({
+        public_id: file.filename,
+        url: getImageUrl(req, file.filename),
+      })) || [];
 
     const epaper = await Epaper.create({
       title,
       publishDate,
-      image: {
-        public_id: req.file.filename,
-        url: getImageUrl(req, req.file.filename),
-      },
+      pages,
     });
 
     res.status(201).json({
       success: true,
-      message: "Epaper created successfully",
       epaper,
     });
   } catch (error) {
@@ -43,9 +34,7 @@ export const createEpaper = async (req, res) => {
   }
 };
 
-// =========================
-// Get All Epapers
-// =========================
+// Get All
 export const getEpapers = async (req, res) => {
   try {
     const epapers = await Epaper.find().sort({
@@ -65,9 +54,7 @@ export const getEpapers = async (req, res) => {
   }
 };
 
-// =========================
-// Get Single Epaper
-// =========================
+// Get Single
 export const getEpaperById = async (req, res) => {
   try {
     const epaper = await Epaper.findById(req.params.id);
@@ -91,13 +78,9 @@ export const getEpaperById = async (req, res) => {
   }
 };
 
-// =========================
-// Update Epaper
-// =========================
+// Update
 export const updateEpaper = async (req, res) => {
   try {
-    const { title, publishDate } = req.body;
-
     const epaper = await Epaper.findById(req.params.id);
 
     if (!epaper) {
@@ -107,22 +90,24 @@ export const updateEpaper = async (req, res) => {
       });
     }
 
-    // If new image uploaded
-    if (req.file) {
-      epaper.image = {
-        public_id: req.file.filename,
-        url: getImageUrl(req, req.file.filename),
-      };
+    let pages = epaper.pages;
+
+    if (req.files?.length > 0) {
+      pages = req.files.map((file) => ({
+        public_id: file.filename,
+        url: getImageUrl(req, file.filename),
+      }));
     }
 
-    epaper.title = title || epaper.title;
-    epaper.publishDate = publishDate || epaper.publishDate;
+    epaper.title = req.body.title || epaper.title;
+    epaper.publishDate =
+      req.body.publishDate || epaper.publishDate;
+    epaper.pages = pages;
 
     await epaper.save();
 
     res.status(200).json({
       success: true,
-      message: "Epaper updated successfully",
       epaper,
     });
   } catch (error) {
@@ -133,9 +118,7 @@ export const updateEpaper = async (req, res) => {
   }
 };
 
-// =========================
-// Delete Epaper
-// =========================
+// Delete
 export const deleteEpaper = async (req, res) => {
   try {
     const epaper = await Epaper.findById(req.params.id);
@@ -151,30 +134,7 @@ export const deleteEpaper = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: "Epaper deleted successfully",
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
-  }
-};
-
-// =========================
-// Delete Multiple Epapers
-// =========================
-export const deleteMultipleEpapers = async (req, res) => {
-  try {
-    const { ids } = req.body;
-
-    await Epaper.deleteMany({
-      _id: { $in: ids },
-    });
-
-    res.status(200).json({
-      success: true,
-      message: "Epapers deleted successfully",
+      message: "Deleted successfully",
     });
   } catch (error) {
     res.status(500).json({

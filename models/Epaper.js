@@ -5,18 +5,19 @@ const epaperSchema = new mongoose.Schema(
     title: {
       type: String,
       required: true,
-      trim: true,
     },
 
     publishDate: {
       type: Date,
-      default: Date.now,
+      required: true,
     },
 
-    image: {
-      public_id: String,
-      url: String,
-    },
+    pages: [
+      {
+        public_id: String,
+        url: String,
+      },
+    ],
   },
   {
     timestamps: true,
